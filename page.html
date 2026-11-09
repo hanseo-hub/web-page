@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEVILFLIX | 멤버십 해지 신청</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- FontAwesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              red: '#E50914',
+              redHover: '#B81D24',
+              darkBg: '#070709',
+              cardBg: '#121216',
+              surface: '#18181f',
+              border: '#27272a',
+              borderHover: '#3f3f46'
+            }
+          },
+          animation: {
+            'pulse-subtle': 'pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow-emerald': 'glowEmerald 1.8s infinite alternate',
+          },
+          keyframes: {
+            pulseSubtle: {
+              '0%, 100%': { opacity: 1 },
+              '50%': { opacity: 0.7 },
+            },
+            glowEmerald: {
+              '0%': { boxShadow: '0 0 12px rgba(16, 185, 129, 0.3)' },
+              '100%': { boxShadow: '0 0 28px rgba(16, 185, 129, 0.7), 0 0 45px rgba(52, 211, 153, 0.4)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #070709;
+      color: #f4f4f5;
+      font-family: 'Inter', -apple-system, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid background for structural texture */
+    .bg-subtle-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    }
+
+    /* Sleek card styling without cheap glows */
+    .net-card {
+      background: #121216;
+      border: 1px solid #27272a;
+    }
+
+    .net-card-hover {
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .net-card-hover:hover {
+      border-color: #3f3f46;
+    }
+
+    /* Bounded stage fleeing button positioning */
+    #flee-btn {
+      position: absolute;
+      will-change: transform, left, top;
+      transition: transform 0.06s ease-out;
+      z-index: 30;
+    }
+
+    #flee-btn.unlocked {
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 100%;
+    }
+
+    /* Custom high-end scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070709;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-subtle-grid min-h-screen flex flex-col justify-between text-zinc-100 antialiased selection:bg-brand-red selection:text-white">
+
+  <!-- ==================== HEADER: AUTHENTIC STREAMING NAVBAR ==================== -->
+  <header class="w-full border-b border-zinc-800/80 bg-zinc-950/90 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Navigation Links -->
+      <div class="flex items-center space-x-8">
+        <a href="#" class="flex items-center space-x-2 group">
+          <span class="text-2xl font-black tracking-tighter text-brand-red group-hover:text-red-500 transition-colors">DEVILFLIX</span>
+        </a>
+        <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-zinc-400">
+          <span class="text-white font-semibold">계정 관리</span>
+          <span class="hover:text-zinc-200 transition cursor-pointer">멤버십 플랜</span>
+          <span class="hover:text-zinc-200 transition cursor-pointer">결제 내역</span>
+          <span class="hover:text-zinc-200 transition cursor-pointer">고객 센터</span>
+        </nav>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-4">
+        <button id="sound-toggle-btn" class="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition text-sm">
+          <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+        </button>
+
+        <div class="flex items-center space-x-2 pl-2 border-l border-zinc-800">
+          <div class="w-8 h-8 rounded bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300">
+            VIP
+          </div>
+          <span class="hidden sm:inline text-xs font-medium text-zinc-300">홍길동 님</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+  <main class="max-w-4xl mx-auto px-4 py-8 sm:py-10 w-full flex-grow flex flex-col justify-center">
+
+    <!-- Breadcrumb & Top Warning -->
+    <div class="mb-6">
+      <div class="flex items-center space-x-2 text-xs text-zinc-500 mb-2">
+        <span>계정</span>
+        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+        <span>멤버십 설정</span>
+        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+        <span class="text-zinc-300 font-medium">멤버십 해지</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">멤버십 해지 신청</h1>
+    </div>
+
+    <!-- MAIN RETENTION CARD -->
+    <div class="net-card rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      
+      <!-- Current Plan Info Banner -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800/80 pb-6 gap-4">
+        <div>
+          <div class="inline-flex items-center space-x-2 text-[11px] font-semibold text-zinc-400 bg-zinc-900 px-3 py-1 rounded-md border border-zinc-800 mb-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>현재 구독 플랜: <strong>프리미엄 4K UHD (월 ₩17,000)</strong></span>
+          </div>
+          <p class="text-sm text-zinc-400">구독을 해지하시더라도 다음 결제 주기 전까지 모든 서비스를 그대로 이용하실 수 있습니다.</p>
+        </div>
+
+        <!-- Real-time Stats Counter -->
+        <div class="flex items-center space-x-4 bg-zinc-950/80 px-4 py-2.5 rounded-xl border border-zinc-800/90 text-xs shrink-0">
+          <div>
+            <div class="text-zinc-500 text-[10px] uppercase font-semibold tracking-wider">해지 시도 횟수</div>
+            <div class="text-lg font-bold text-red-500 font-mono" id="attempt-count">0회</div>
+          </div>
+          <div class="h-6 w-px bg-zinc-800"></div>
+          <div>
+            <div class="text-zinc-500 text-[10px] uppercase font-semibold tracking-wider">소요 시간</div>
+            <div class="text-lg font-bold text-zinc-200 font-mono" id="timer-display">00:00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-World Streaming Retention Benefits Warning -->
+      <div class="py-6 border-b border-zinc-800/80">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4 flex items-center space-x-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+          <span>해지 시 손실되는 프리미엄 멤버십 혜택</span>
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="flex items-start space-x-3 p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-800/70">
+            <div class="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 shrink-0 mt-0.5">
+              <i class="fa-solid fa-tv text-red-500"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-zinc-200">4K Ultra HD & HDR 화질 손실</div>
+              <div class="text-zinc-500 text-[11px] mt-0.5">최상급 명암비 및 고화질 스트리밍 권한 박탈</div>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3 p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-800/70">
+            <div class="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 shrink-0 mt-0.5">
+              <i class="fa-solid fa-users text-blue-400"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-zinc-200">동시 접속 4개 프로필 제한</div>
+              <div class="text-zinc-500 text-[11px] mt-0.5">가족 및 동거인과의 독립 프로필 공유 중단</div>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3 p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-800/70">
+            <div class="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 shrink-0 mt-0.5">
+              <i class="fa-solid fa-download text-emerald-400"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-zinc-200">오프라인 저장 및 다운로드 불가</div>
+              <div class="text-zinc-500 text-[11px] mt-0.5">모바일 디바이스 오프라인 저장 기능 제한</div>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3 p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-800/70">
+            <div class="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 shrink-0 mt-0.5">
+              <i class="fa-solid fa-ban text-purple-400"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-zinc-200">광고 완전 차단 혜택 삭제</div>
+              <div class="text-zinc-500 text-[11px] mt-0.5">스탠다드 요금제 전환 시 중간 광고 노출</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CORPORATE DARK PATTERN SYSTEM NOTIFICATION BANNER -->
+      <div class="my-5 p-4 rounded-xl bg-zinc-950/90 border border-zinc-800 flex items-center space-x-3 shadow-inner">
+        <div class="w-8 h-8 rounded-full bg-red-950/80 border border-red-800/60 flex items-center justify-center text-red-400 shrink-0 text-sm">
+          <i class="fa-solid fa-shield-cat"></i>
+        </div>
+        <div class="flex-grow min-w-0">
+          <div class="text-[11px] text-zinc-500 font-medium">시스템 보안 세션 상태</div>
+          <div class="text-xs sm:text-sm font-semibold text-zinc-200 truncate" id="gaslight-message">
+            정말 혜택을 포기하시겠습니까? 해지 확인 버튼을 클릭해 진행하세요.
+          </div>
+        </div>
+      </div>
+
+      <!-- GAME ARENA CONTAINER (Bounded region for fleeing button) -->
+      <div id="arena" class="relative w-full h-64 sm:h-72 rounded-xl bg-zinc-950 border border-zinc-800/90 p-4 flex flex-col justify-between overflow-hidden shadow-inner">
+        
+        <!-- Stage Background Indicator -->
+        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-25 text-center p-4">
+          <i class="fa-solid fa-mouse-pointer text-3xl mb-2 text-zinc-600"></i>
+          <p class="text-xs text-zinc-400 font-medium">아래 영역에서 해지 버튼에 접근해 보세요</p>
+        </div>
+
+        <!-- Security Lock Header Badge -->
+        <div id="lock-status-badge" class="self-center z-10 bg-zinc-900/90 border border-zinc-800 px-3.5 py-1.5 rounded-full text-xs text-zinc-400 font-medium flex items-center space-x-2">
+          <i class="fa-solid fa-lock text-red-500 text-[11px] animate-pulse"></i>
+          <span id="lock-status-text">보안 상태: [해지 버튼 보호 락 작동 중]</span>
+        </div>
+
+        <!-- FLEEING CANCEL BUTTON -->
+        <button id="flee-btn" class="px-5 py-3 rounded-lg font-bold text-xs sm:text-sm bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 shadow-lg flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-circle-xmark text-zinc-500"></i>
+          <span id="flee-btn-text">해지 계속하기</span>
+        </button>
+
+        <!-- BOTTOM ACTION ROW -->
+        <div class="w-full z-20 flex flex-col sm:flex-row items-center justify-between gap-3 bg-zinc-900/90 p-3 rounded-xl border border-zinc-800/90 backdrop-blur-md">
+          
+          <!-- Keep Subscription Button -->
+          <button id="stay-btn" class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition border border-zinc-700/80 flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-check text-emerald-400"></i>
+            <span>멤버십 유지하기 (추천)</span>
+          </button>
+
+          <!-- 1-WON EXPRESS BYPASS BUTTON -->
+          <button id="open-pay-modal-btn" class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/50 transition transform active:scale-95 flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-bolt text-yellow-300"></i>
+            <span>⚡ 1원 결제 후 프리패스 해지</span>
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-xs text-zinc-600">
+      <p>© 2026 DEVILFLIX Services Korea Inc. All rights reserved. | 웹 프로그래밍 과제용 데모 인터페이스</p>
+    </footer>
+
+  </main>
+
+  <!-- ==================== MODAL 1: TOSS / STRIPE STYLE CHECKOUT MODAL ==================== -->
+  <div id="pay-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="net-card max-w-md w-full rounded-2xl p-6 shadow-2xl relative border border-zinc-800 transform transition-all scale-95 opacity-0" id="pay-modal-card">
+      
+      <!-- Close Button -->
+      <button id="close-pay-modal" class="absolute top-4 right-4 text-zinc-500 hover:text-white w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="mb-5">
+        <div class="inline-flex items-center space-x-1.5 text-xs font-semibold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded border border-emerald-800/60 mb-2">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>DEVILPAY 보안 결제</span>
+        </div>
+        <h3 class="text-xl font-bold text-white tracking-tight">해지 전용 프리패스 이용권 결제</h3>
+        <p class="text-xs text-zinc-400 mt-1">1원 결제 시 해지 버튼의 이동 방지 보안 락이 즉시 해제됩니다.</p>
+      </div>
+
+      <!-- Realistic Credit Card Preview -->
+      <div class="w-full h-40 rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-4 border border-zinc-800 flex flex-col justify-between shadow-lg mb-5 relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono font-bold tracking-wider text-zinc-400">DEVILFLIX EXPRESS PASS</span>
+          <i class="fa-brands fa-cc-visa text-2xl text-zinc-300"></i>
+        </div>
+
+        <div class="w-8 h-6 rounded bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
+          <div class="w-5 h-3 border border-amber-400/50 rounded-xs"></div>
+        </div>
+
+        <div>
+          <div class="font-mono text-sm text-zinc-200 tracking-widest">•••• •••• •••• 1004</div>
+          <div class="flex justify-between items-center text-[10px] text-zinc-500 mt-1">
+            <span>QUICK BYPASS CARD</span>
+            <span>EXP: 12/28</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Itemized Receipt Summary -->
+      <div class="bg-zinc-950 rounded-xl p-3.5 border border-zinc-800/90 mb-5 space-y-2 text-xs">
+        <div class="flex justify-between text-zinc-400">
+          <span>프리패스 해지권 수수료</span>
+          <span class="line-through text-zinc-600">₩17,000</span>
+        </div>
+        <div class="flex justify-between text-zinc-400">
+          <span>악마의 한시적 특별 할인</span>
+          <span class="text-emerald-400">-₩16,999</span>
+        </div>
+        <div class="h-px bg-zinc-800 my-1"></div>
+        <div class="flex justify-between items-center font-bold text-sm text-white">
+          <span>최종 결제 금액</span>
+          <span class="text-base font-extrabold text-emerald-400">₩1</span>
+        </div>
+      </div>
+
+      <!-- Checkout Submit Button -->
+      <button id="process-pay-btn" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-950/60 transition transform active:scale-98 flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-lock text-xs"></i>
+        <span>₩1 결제하고 락 즉시 해제하기</span>
+      </button>
+
+      <!-- Processing State Overlay -->
+      <div id="pay-processing-overlay" class="absolute inset-0 bg-zinc-950/95 rounded-2xl flex flex-col items-center justify-center p-6 hidden z-20 border border-zinc-800">
+        <div class="w-12 h-12 relative flex items-center justify-center mb-4">
+          <div class="w-12 h-12 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin"></div>
+          <i class="fa-solid fa-bolt text-emerald-400 text-xs absolute"></i>
+        </div>
+        <h4 class="text-sm font-bold text-white mb-2" id="pay-status-text">금융 결제망 통신 처리 중...</h4>
+        <div class="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden max-w-xs border border-zinc-800">
+          <div id="pay-progress-bar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: RECEIPT / FINAL CANCELLATION SUCCESS ==================== -->
+  <div id="victory-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="net-card max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl text-center relative border border-zinc-800 transform transition-all scale-95 opacity-0" id="victory-modal-card">
+      
+      <!-- Checkmark Icon -->
+      <div class="w-14 h-14 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg">
+        <i class="fa-solid fa-check"></i>
+      </div>
+
+      <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">구독 해지가 완료되었습니다</h2>
+      <p class="text-xs text-zinc-400 mt-1 mb-6">그동안 DEVILFLIX를 이용해 주셔서 감사합니다. 언제든 다시 재구독하실 수 있습니다.</p>
+
+      <!-- Official Receipt Card -->
+      <div class="bg-zinc-950 rounded-xl p-4 border border-zinc-800 text-left mb-6 space-y-2.5">
+        <div class="text-[11px] font-bold text-zinc-400 border-b border-zinc-800 pb-2 flex items-center justify-between">
+          <span>🧾 해지 승인 완료 영수증</span>
+          <span class="font-mono text-zinc-500">REF: #DF-2026-CANCEL</span>
+        </div>
+        
+        <div class="flex justify-between text-xs text-zinc-300">
+          <span class="text-zinc-500">해지 회피 시도 횟수:</span>
+          <span class="font-mono font-semibold text-red-400" id="final-attempts">0회</span>
+        </div>
+        <div class="flex justify-between text-xs text-zinc-300">
+          <span class="text-zinc-500">총 소요 시간:</span>
+          <span class="font-mono font-semibold text-zinc-200" id="final-time">00초</span>
+        </div>
+        <div class="flex justify-between text-xs text-zinc-300">
+          <span class="text-zinc-500">프리패스 해지 결제금:</span>
+          <span class="font-mono font-semibold text-emerald-400">₩1</span>
+        </div>
+        <div class="flex justify-between text-xs text-zinc-300">
+          <span class="text-zinc-500">해지 처리 결과:</span>
+          <span class="font-semibold text-emerald-400">정상 승인 (다음 결제 취소됨)</span>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button id="restart-btn" class="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-xs border border-zinc-700 transition">
+        <i class="fa-solid fa-rotate-right mr-2"></i>처음 상태로 되돌리기 (테스트 재시작)
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC & AUDIO ENGINE ==================== -->
+  <script>
+    /* ==========================================================================
+       1. WEB AUDIO API SYNTHESIZER (No broken sound assets)
+       ========================================================================== */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+      }
+
+      playWhoosh() {
+        if (this.muted) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
+          
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.08);
+        } catch(e){}
+      }
+
+      playTeleport() {
+        if (this.muted) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(900, this.ctx.currentTime + 0.1);
+          
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.1);
+        } catch(e){}
+      }
+
+      playPaySuccess() {
+        if (this.muted) return;
+        this.init();
+        try {
+          const notes = [440, 554.37, 659.25, 880]; // A4, C#5, E5, A5
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            gain.gain.setValueAtTime(0, this.ctx.currentTime + idx * 0.06);
+            gain.gain.linearRampToValueAtTime(0.12, this.ctx.currentTime + idx * 0.06 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.06 + 0.25);
+            
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(this.ctx.currentTime + idx * 0.06);
+            osc.stop(this.ctx.currentTime + idx * 0.06 + 0.25);
+          });
+        } catch(e){}
+      }
+
+      playClick() {
+        if (this.muted) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.04);
+        } catch(e){}
+      }
+    }
+
+    const sounds = new SoundEngine();
+
+    /* ==========================================================================
+       2. DOM ELEMENTS & GAME STATE
+       ========================================================================== */
+    const arena = document.getElementById('arena');
+    const fleeBtn = document.getElementById('flee-btn');
+    const fleeBtnText = document.getElementById('flee-btn-text');
+    const attemptCountEl = document.getElementById('attempt-count');
+    const timerDisplayEl = document.getElementById('timer-display');
+    const gaslightMessageEl = document.getElementById('gaslight-message');
+    const lockStatusBadge = document.getElementById('lock-status-badge');
+    const lockStatusText = document.getElementById('lock-status-text');
+
+    // Modals
+    const payModal = document.getElementById('pay-modal');
+    const payModalCard = document.getElementById('pay-modal-card');
+    const openPayModalBtn = document.getElementById('open-pay-modal-btn');
+    const closePayModalBtn = document.getElementById('close-pay-modal');
+    const processPayBtn = document.getElementById('process-pay-btn');
+    const payProcessingOverlay = document.getElementById('pay-processing-overlay');
+    const payProgressBar = document.getElementById('pay-progress-bar');
+    const payStatusText = document.getElementById('pay-status-text');
+
+    const victoryModal = document.getElementById('victory-modal');
+    const victoryModalCard = document.getElementById('victory-modal-card');
+    const finalAttemptsEl = document.getElementById('final-attempts');
+    const finalTimeEl = document.getElementById('final-time');
+    const restartBtn = document.getElementById('restart-btn');
+    const stayBtn = document.getElementById('stay-btn');
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+    const soundIcon = document.getElementById('sound-icon');
+
+    // State Variables
+    let attempts = 0;
+    let isUnlocked = false;
+    let startTime = null;
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+
+    // Corporate Dark Pattern Gaslighting Messages
+    const GASLIGHT_MESSAGES = [
+      "해지 버튼 접근 감지: 세션 보안 시스템이 버튼 위치를 자동으로 재배치합니다.",
+      "마우스 이동 속도가 부족합니다. 정밀하게 조준해 보세요.",
+      "경고: 지금 해지 시 수집된 취향 기반 알고리즘 데이터가 영구 삭제됩니다.",
+      "네트워크 동기화 오류: 해지 신호 전달에 실패하였습니다.",
+      "보안 가이드: 해지 버튼 클릭 실패율이 상승하고 있습니다.",
+      "해지 절차가 지연되고 있습니다. '1원 결제 프리패스'를 이용해 보세요.",
+      "정말 4K Ultra HD 화질 혜택을 포기하시겠습니까?",
+      "시스템 알림: 회원님의 해지 요청이 보안 락에 의해 차단되었습니다."
+    ];
+
+    /* ==========================================================================
+       3. TIMER LOGIC
+       ========================================================================== */
+    function startTimer() {
+      if (startTime) return;
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+        const secs = String(elapsedSeconds % 60).padStart(2, '0');
+        timerDisplayEl.textContent = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    /* ==========================================================================
+       4. BOUNDED ARENA EVASION PHYSICS ENGINE
+       ========================================================================== */
+    function centerButtonInArena() {
+      if (isUnlocked) return;
+      const arenaRect = arena.getBoundingClientRect();
+      const btnRect = fleeBtn.getBoundingClientRect();
+      
+      const initialLeft = (arenaRect.width / 2) - (btnRect.width / 2);
+      const initialTop = (arenaRect.height / 2) - (btnRect.height / 2);
+      
+      fleeBtn.style.left = `${initialLeft}px`;
+      fleeBtn.style.top = `${initialTop}px`;
+    }
+
+    function evade(e) {
+      if (isUnlocked) return;
+      startTimer();
+
+      const mouseX = e.clientX || (e.touches && e.touches[0].clientX);
+      const mouseY = e.clientY || (e.touches && e.touches[0].clientY);
+      if (!mouseX || !mouseY) return;
+
+      const arenaRect = arena.getBoundingClientRect();
+      const btnRect = fleeBtn.getBoundingClientRect();
+
+      const btnCenterX = btnRect.left + btnRect.width / 2;
+      const btnCenterY = btnRect.top + btnRect.height / 2;
+
+      const dist = Math.hypot(mouseX - btnCenterX, mouseY - btnCenterY);
+      const threshold = 110; // Detection threshold in pixels
+
+      if (dist < threshold) {
+        attempts++;
+        attemptCountEl.textContent = `${attempts}회`;
+        
+        // Update gaslighting message periodically
+        if (attempts % 3 === 0) {
+          gaslightMessageEl.textContent = GASLIGHT_MESSAGES[Math.floor(Math.random() * GASLIGHT_MESSAGES.length)];
+        }
+
+        // Vector pointing away from mouse cursor
+        let angle = Math.atan2(btnCenterY - mouseY, btnCenterX - mouseX);
+        angle += (Math.random() - 0.5) * 0.5; // Slight angle variance
+
+        const moveDistance = 140;
+        let newLeft = (btnRect.left - arenaRect.left) + Math.cos(angle) * moveDistance;
+        let newTop = (btnRect.top - arenaRect.top) + Math.sin(angle) * moveDistance;
+
+        const padding = 12;
+        const maxLeft = arenaRect.width - btnRect.width - padding;
+        const maxTop = arenaRect.height - btnRect.height - 70; // Avoid overlapping bottom CTA bar
+
+        let wasTeleported = false;
+        // Bounce / Warp back into arena if hitting edges
+        if (newLeft < padding || newLeft > maxLeft || newTop < padding || newTop > maxTop) {
+          newLeft = Math.random() * (maxLeft - padding) + padding;
+          newTop = Math.random() * (maxTop - padding) + padding;
+          wasTeleported = true;
+        }
+
+        fleeBtn.style.left = `${newLeft}px`;
+        fleeBtn.style.top = `${newTop}px`;
+
+        if (wasTeleported) {
+          sounds.playTeleport();
+        } else {
+          sounds.playWhoosh();
+        }
+      }
+    }
+
+    /* ==========================================================================
+       5. MODAL INTERACTION & 1-WON PAYMENT FLOW
+       ========================================================================== */
+    function openPayModal() {
+      sounds.playClick();
+      payModal.classList.remove('hidden');
+      setTimeout(() => {
+        payModalCard.classList.remove('scale-95', 'opacity-0');
+        payModalCard.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    function closePayModal() {
+      sounds.playClick();
+      payModalCard.classList.remove('scale-100', 'opacity-100');
+      payModalCard.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        payModal.classList.add('hidden');
+      }, 200);
+    }
+
+    function processPayment() {
+      sounds.playClick();
+      payProcessingOverlay.classList.remove('hidden');
+      
+      const steps = [
+        { progress: '35%', text: '보안 금융 토큰 발급 중...' },
+        { progress: '75%', text: '₩1 승인 처리 및 해지 락 해제 중...' },
+        { progress: '100%', text: '결제 완료 및 해지 락 해제됨!' }
+      ];
+
+      let idx = 0;
+      const interval = setInterval(() => {
+        if (idx < steps.length) {
+          payProgressBar.style.width = steps[idx].progress;
+          payStatusText.textContent = steps[idx].text;
+          sounds.playClick();
+          idx++;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            payProcessingOverlay.classList.add('hidden');
+            payProgressBar.style.width = '0%';
+            closePayModal();
+            unlockCancellation();
+          }, 400);
+        }
+      }, 500);
+    }
+
+    // Unlock cancel button after payment
+    function unlockCancellation() {
+      isUnlocked = true;
+      sounds.playPaySuccess();
+
+      if (window.confetti) {
+        confetti({
+          particleCount: 70,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+      }
+
+      // Convert flee button to clean unlocked action button
+      fleeBtn.classList.add('unlocked');
+      fleeBtn.className = "w-full py-3.5 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl shadow-emerald-950/70 border border-emerald-400 animate-glow-emerald cursor-pointer flex items-center justify-center space-x-2";
+      fleeBtnText.textContent = "✨ [락 해제됨] 멤버십 최종 해지 확정하기";
+      
+      // Move button inside bottom bar of arena
+      arena.appendChild(fleeBtn);
+
+      // Update security status indicators
+      lockStatusBadge.className = "self-center z-10 bg-emerald-950/80 border border-emerald-800 px-3.5 py-1.5 rounded-full text-xs text-emerald-400 font-medium flex items-center space-x-2";
+      lockStatusText.textContent = "보안 상태: [₩1 결제 완료 - 해지 버튼 정상 동작]";
+      lockStatusBadge.querySelector('i').className = "fa-solid fa-lock-open text-emerald-400 text-[11px]";
+
+      gaslightMessageEl.textContent = "₩1 프리패스 결제가 완료되었습니다. 아래 버튼을 눌러 해지를 완료하세요.";
+    }
+
+    // Final Receipt Victory Trigger
+    function triggerFinalCancellation() {
+      if (!isUnlocked) return;
+      
+      sounds.playClick();
+      sounds.playPaySuccess();
+      stopTimer();
+
+      if (window.confetti) {
+        confetti({
+          particleCount: 140,
+          spread: 90,
+          origin: { y: 0.5 }
+        });
+      }
+
+      finalAttemptsEl.textContent = `${attempts}회`;
+      finalTimeEl.textContent = `${elapsedSeconds}초`;
+
+      victoryModal.classList.remove('hidden');
+      setTimeout(() => {
+        victoryModalCard.classList.remove('scale-95', 'opacity-0');
+        victoryModalCard.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    // Reset Game to Initial State
+    function resetGame() {
+      sounds.playClick();
+      isUnlocked = false;
+      attempts = 0;
+      elapsedSeconds = 0;
+      startTime = null;
+      stopTimer();
+
+      attemptCountEl.textContent = "0회";
+      timerDisplayEl.textContent = "00:00";
+      gaslightMessageEl.textContent = "정말 혜택을 포기하시겠습니까? 해지 확인 버튼을 클릭해 진행하세요.";
+
+      victoryModalCard.classList.remove('scale-100', 'opacity-100');
+      victoryModalCard.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        victoryModal.classList.add('hidden');
+      }, 200);
+
+      // Restore button state
+      fleeBtn.classList.remove('unlocked');
+      fleeBtn.className = "px-5 py-3 rounded-lg font-bold text-xs sm:text-sm bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 shadow-lg flex items-center justify-center space-x-2";
+      fleeBtnText.textContent = "해지 계속하기";
+      arena.appendChild(fleeBtn);
+
+      lockStatusBadge.className = "self-center z-10 bg-zinc-900/90 border border-zinc-800 px-3.5 py-1.5 rounded-full text-xs text-zinc-400 font-medium flex items-center space-x-2";
+      lockStatusText.textContent = "보안 상태: [해지 버튼 보호 락 작동 중]";
+      lockStatusBadge.querySelector('i').className = "fa-solid fa-lock text-red-500 text-[11px] animate-pulse";
+
+      setTimeout(centerButtonInArena, 50);
+    }
+
+    /* ==========================================================================
+       6. EVENT LISTENERS
+       ========================================================================== */
+    window.addEventListener('load', centerButtonInArena);
+    window.addEventListener('resize', centerButtonInArena);
+
+    window.addEventListener('mousemove', evade);
+    window.addEventListener('touchmove', evade, { passive: true });
+    arena.addEventListener('touchstart', evade, { passive: true });
+
+    fleeBtn.addEventListener('click', (e) => {
+      if (!isUnlocked) {
+        e.preventDefault();
+        evade(e);
+      } else {
+        triggerFinalCancellation();
+      }
+    });
+
+    openPayModalBtn.addEventListener('click', openPayModal);
+    closePayModalBtn.addEventListener('click', closePayModal);
+    processPayBtn.addEventListener('click', processPayment);
+    restartBtn.addEventListener('click', resetGame);
+
+    stayBtn.addEventListener('click', () => {
+      sounds.playClick();
+      alert("감사합니다! 프리미엄 4K UHD 멤버십이 성공적으로 유지되었습니다.");
+    });
+
+    soundToggleBtn.addEventListener('click', () => {
+      const isMuted = sounds.toggleMute();
+      if (isMuted) {
+        soundIcon.className = "fa-solid fa-volume-xmark text-red-500";
+      } else {
+        soundIcon.className = "fa-solid fa-volume-high text-emerald-400";
+        sounds.playClick();
+      }
+    });
+  </script>
+</body>
+</html>
